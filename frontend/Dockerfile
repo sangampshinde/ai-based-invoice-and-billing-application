@@ -15,6 +15,7 @@ COPY . .
 
 # Next.js collects anonymous telemetry data about general usage.
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV OUTPUT_STANDALONE=true
 
 RUN npm run build
 
