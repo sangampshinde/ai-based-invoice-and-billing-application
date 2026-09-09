@@ -43,12 +43,19 @@ export function AppShell({ children }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  if (loading) {
+  // Enforce Authentication Guard: Redirect to /login if unauthenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--bg)] text-[var(--ink-muted)] text-sm">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-          <span>Loading Invoicer...</span>
+          <span>{loading ? "Loading Invoicer..." : "Redirecting to login..."}</span>
         </div>
       </div>
     );

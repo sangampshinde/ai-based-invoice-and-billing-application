@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -15,11 +15,17 @@ import AILogo from "@/components/layout/AILogo";
 import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register, user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/dashboard");
+    }
+  }, [user, authLoading, router]);
 
   async function onSubmit(e) {
     e.preventDefault();
