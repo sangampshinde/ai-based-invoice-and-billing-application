@@ -16,12 +16,8 @@ async function bootstrap() {
 
   app.enableCors({
     origin: (origin, callback) => {
-      // allow requests with no origin (like mobile apps, curl, server-to-server)
-      if (!origin || clientUrls.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Permissive in development
-      }
+      // allow requests from any frontend origin (Vercel, custom domain, localhost)
+      callback(null, origin || true);
     },
     credentials: true,
   });

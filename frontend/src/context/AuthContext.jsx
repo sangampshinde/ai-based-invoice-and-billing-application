@@ -17,6 +17,9 @@ export function AuthProvider({ children }) {
       setUser(user);
     } catch {
       setUser(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
     } finally {
       setLoading(false);
     }
@@ -27,15 +30,21 @@ export function AuthProvider({ children }) {
   }, [refresh]);
 
   const login = useCallback(async (credentials) => {
-    const { user } = await authApi.login(credentials);
-    setUser(user);
-    return user;
+    const data = await authApi.login(credentials);
+    if (data.token && typeof window !== "undefined") {
+      localStorage.setItem("token", data.token);
+    }
+    setUser(data.user);
+    return data.user;
   }, []);
 
   const register = useCallback(async (payload) => {
-    const { user } = await authApi.register(payload);
-    setUser(user);
-    return user;
+    const data = await authApi.register(payload);
+    if (data.token && typeof window !== "undefined") {
+      localStorage.setItem("token", data.token);
+    }
+    setUser(data.user);
+    return data.user;
   }, []);
 
   const updateProfile = useCallback(async (payload) => {
@@ -48,6 +57,9 @@ export function AuthProvider({ children }) {
     try {
       await authApi.logout();
     } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
       setUser(null);
       queryClient.clear();
     }

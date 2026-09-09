@@ -24,7 +24,7 @@ export class AuthController {
   ) {
     const result = await this.authService.register(dto);
     this.setTokenCookie(res, result.token);
-    return { user: result.user };
+    return { user: result.user, token: result.token };
   }
 
   @Post('login')
@@ -34,7 +34,7 @@ export class AuthController {
   ) {
     const result = await this.authService.login(dto);
     this.setTokenCookie(res, result.token);
-    return { user: result.user };
+    return { user: result.user, token: result.token };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -45,20 +45,22 @@ export class AuthController {
 
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
+    const isProd = process.env.NODE_ENV === 'production';
     res.clearCookie('token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
     });
     return { message: 'Logged out successfully' };
   }
 
   private setTokenCookie(res: Response, token: string) {
+    const isProd = process.env.NODE_ENV === 'production';
     res.cookie('token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     });
