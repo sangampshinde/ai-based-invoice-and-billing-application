@@ -16,16 +16,23 @@ async function seed() {
   console.log('🌱 Starting Database Seeder...');
 
   const databaseUrl = process.env.DATABASE_URL;
-  const isNeonOrRemote = databaseUrl && (databaseUrl.includes('neon.tech') || databaseUrl.includes('sslmode=require'));
+  const isNeonOrRemote = databaseUrl && (
+    databaseUrl.includes('neon.tech') || 
+    databaseUrl.includes('sslmode=') || 
+    databaseUrl.includes('supabase') || 
+    databaseUrl.includes('rds.amazonaws.com')
+  );
+  const cleanUrl = databaseUrl ? databaseUrl.replace(/([?&])sslmode=[^&]*(&?)/, (match, p1, p2) => (p1 === '?' && p2 ? '?' : '')) : undefined;
 
   const dataSource = new DataSource(
-    databaseUrl
+    cleanUrl
       ? {
           type: 'postgres',
-          url: databaseUrl,
+          url: cleanUrl,
           entities: [User, Client, Invoice, InvoiceItem, Payment, Expense],
           synchronize: true,
           ssl: isNeonOrRemote ? { rejectUnauthorized: false } : false,
+          extra: isNeonOrRemote ? { ssl: { rejectUnauthorized: false } } : undefined,
         }
       : {
           type: 'postgres',

@@ -11,32 +11,50 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   constructor(private configService: ConfigService) {}
 
   onModuleInit() {
+    const redisUrl = this.configService.get<string>('REDIS_URL');
     const host = this.configService.get<string>('REDIS_HOST', '127.0.0.1');
     const port = Number(this.configService.get<number>('REDIS_PORT', 6379));
     const password = this.configService.get<string>('REDIS_PASSWORD', '');
+    const tlsEnabled = this.configService.get<string>('REDIS_TLS') === 'true' || redisUrl?.startsWith('rediss://');
 
     try {
-      this.client = new Redis({
-        host,
-        port,
-        password: password || undefined,
-        retryStrategy: (times) => {
-          if (times > 3) {
-            this.logger.warn('Redis retry limit reached. Continuing with in-memory fallback.');
-            return null;
-          }
-          return Math.min(times * 100, 2000);
-        },
-        maxRetriesPerRequest: 1,
-        lazyConnect: true,
-      });
+      if (redisUrl) {
+        this.client = new Redis(redisUrl, {
+          tls: tlsEnabled ? { rejectUnauthorized: false } : undefined,
+          retryStrategy: (times) => {
+            if (times > 3) {
+              this.logger.warn('Redis retry limit reached. Continuing with in-memory fallback.');
+              return null;
+            }
+            return Math.min(times * 100, 2000);
+          },
+          maxRetriesPerRequest: 1,
+          lazyConnect: true,
+        });
+      } else {
+        this.client = new Redis({
+          host,
+          port,
+          password: password || undefined,
+          tls: tlsEnabled ? { rejectUnauthorized: false } : undefined,
+          retryStrategy: (times) => {
+            if (times > 3) {
+              this.logger.warn('Redis retry limit reached. Continuing with in-memory fallback.');
+              return null;
+            }
+            return Math.min(times * 100, 2000);
+          },
+          maxRetriesPerRequest: 1,
+          lazyConnect: true,
+        });
+      }
 
       this.client.connect().then(() => {
         this.isConnected = true;
-        this.logger.log(`Connected to Redis at ${host}:${port}`);
+        this.logger.log(`✅ Connected to Redis (${redisUrl ? 'via REDIS_URL' : `${host}:${port}`})`);
       }).catch((err) => {
         this.isConnected = false;
-        this.logger.warn(`Redis not available (${err.message}). In-memory mode active.`);
+        this.logger.warn(`Redis not available (${err.message}). In-memory fallback mode active.`);
       });
 
       this.client.on('error', (err) => {

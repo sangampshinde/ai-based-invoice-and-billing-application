@@ -23,6 +23,10 @@ export class AiService {
     }
   }
 
+  private get modelName(): string {
+    return this.configService.get<string>('GEMINI_MODEL') || 'gemini-2.0-flash';
+  }
+
   async scanReceipt(file: Express.Multer.File) {
     if (!file) throw new BadRequestException('Receipt image file is required');
 
@@ -52,7 +56,7 @@ export class AiService {
       }`;
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: this.modelName,
         contents: [
           {
             role: 'user',
@@ -104,7 +108,7 @@ export class AiService {
       Keep it concise, actionable, and encouraging.`;
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: this.modelName,
         contents: prompt,
       });
 
@@ -133,7 +137,7 @@ export class AiService {
       Format the response as JSON: { "subject": "...", "body": "..." }`;
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: this.modelName,
         contents: prompt,
         config: { responseMimeType: 'application/json' },
       });
@@ -158,7 +162,7 @@ export class AiService {
       const prompt = `Draft professional terms and thank-you notes for an invoice covering a ${dto.projectType || 'freelance'} project with standard payment terms: ${dto.terms || 'Net 15 days'}. Keep it friendly and concise. Return plain text only.`;
 
       const response = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: this.modelName,
         contents: prompt,
       });
 
