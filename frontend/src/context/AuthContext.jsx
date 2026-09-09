@@ -56,9 +56,12 @@ export function AuthProvider({ children }) {
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
+    } catch (e) {
+      console.warn("Logout error:", e);
     } finally {
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
+        window.location.href = "/login";
       }
       setUser(null);
       queryClient.clear();
