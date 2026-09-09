@@ -28,7 +28,7 @@ export class AiController {
 
   @Post('scan-receipt')
   @UseInterceptors(FileInterceptor('receipt'))
-  async scanReceipt(@UploadedFile() file: Express.Multer.File) {
+  async scanReceipt(@UploadedFile() file: any) {
     return this.aiService.scanReceipt(file);
   }
 

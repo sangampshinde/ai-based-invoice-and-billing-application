@@ -27,7 +27,7 @@ export class AiService {
     return this.configService.get<string>('GEMINI_MODEL') || 'gemini-2.0-flash';
   }
 
-  async scanReceipt(file: Express.Multer.File) {
+  async scanReceipt(file: any) {
     if (!file) throw new BadRequestException('Receipt image file is required');
 
     if (!this.ai) {
